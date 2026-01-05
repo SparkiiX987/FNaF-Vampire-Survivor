@@ -18,13 +18,17 @@ public class AnimationManager : MonoBehaviour
 
     private void Start()
     {
-        print(animations[0].GetAnimationName);
         meshtransform = animator.transform;
     }
 
     public void PlayNext()
     {
-        PlayAnimation(++currentAnim);
+        if(currentAnim >= animations.Count) 
+        {
+            currentAnim = 0;
+        }
+
+        PlayAnimation(currentAnim++);
     }
 
     private void PlayAnimation(int _index)
@@ -32,6 +36,7 @@ public class AnimationManager : MonoBehaviour
         meshtransform.position = positionAndScales[(int)animations[_index].GetTransformScaleType].animationPosition;
         meshtransform.localScale = positionAndScales[(int)animations[_index].GetTransformScaleType].animationScale;
 
-        animator.Play(_index);
+        animator.Play(animations[_index].GetAnimationName);
+        print(animations[_index].GetAnimationName);
     }
 }
