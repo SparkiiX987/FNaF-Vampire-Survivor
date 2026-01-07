@@ -57,3 +57,8 @@ public class PlayerStatsFactory : StatsFactory<PlayerStatsFactory, PlayerStats>
         return this;
     }
 }
+
+public class AIBaseStatsFactory : StatsFactory<AIBaseStatsFactory, Stats>
+{
+
+}

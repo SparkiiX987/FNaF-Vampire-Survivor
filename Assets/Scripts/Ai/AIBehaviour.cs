@@ -14,12 +14,27 @@ public class AIBehaviour : MonoBehaviour
 
     void Start()
     {
-        
+
+    }
+
+    public void SetStats(Stats _stats)
+    {
+        stats = _stats;
+    }
+
+    public void TakeDamages(float _amount)
+    {
+        stats.SetHealth(stats.GetCurrentHealth - _amount);
+
+        if (stats.GetCurrentHealth <= 0)
+        {
+            OnDeath();
+        }
     }
 
     void Update()
     {
-        if(playerTransform == null)
+        if (playerTransform == null)
         {
             return;
         }
@@ -41,6 +56,12 @@ public class AIBehaviour : MonoBehaviour
 
     private void OnDeath()
     {
-        pool.Release(gameObject);
+        if (pool != null)
+        {
+            pool.Release(gameObject);
+            return;
+        }
+
+        Destroy(gameObject);
     }
 }

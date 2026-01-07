@@ -14,10 +14,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] 
     private Camera playerCamera;
 
-    [SerializeField] 
-    Transform meshTransform;
+    [SerializeField]
+    private Transform meshTransform;
 
-    Vector2 moveDir;
+    private Vector2 moveDir;
+
+    private float currentAACooldown;
+
+    [SerializeField] private GameObject projectilePrefab;
+
+    [SerializeField] private Transform projectileSpawnPoint;
 
     private void Awake()
     {
@@ -57,6 +63,30 @@ public class PlayerController : MonoBehaviour
         }
 
         RotatePlayer();
+
+        if(currentAACooldown <= 0)
+        {
+            FireAutoAttack();
+        }
+        else
+        {
+            currentAACooldown -= Time.deltaTime;
+        }
+    }
+
+    private void FireAutoAttack()
+    {
+        animator.SetTrigger("FireAA");
+        currentAACooldown = stats.GetAttackCooldown;
+        GameObject projectile = Instantiate(projectilePrefab, projectileSpawnPoint.position, transform.rotation);
+
+        Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        if (Physics.Raycast(ray, out RaycastHit raycastHit))
+        {
+            Vector3 dir = (raycastHit.point - transform.position).normalized;
+            dir.y = 0;
+            projectile.GetComponent<Projectile>().Initialize(dir, stats.GetDamages);
+        }
     }
 
     private void RotatePlayer()
@@ -71,7 +101,6 @@ public class PlayerController : MonoBehaviour
     private void StartMove(InputAction.CallbackContext _ctx)
     {
         moveDir = _ctx.ReadValue<Vector2>();
-        animator.SetTrigger("StartMoving");
         animator.SetBool("IsIdle", false);
     }
 

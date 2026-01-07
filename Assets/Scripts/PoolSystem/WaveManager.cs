@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -12,16 +13,45 @@ public class WaveManager : MonoBehaviour
     [SerializeField]
     private List<EnemyPool> enemiesPossible = new();
 
+    [SerializeField]
+    private float remainingWaveTime;
+
     private void Start()
     {
         
     }
 
+    private IEnumerator ProcessWaveSpawn()
+    {
+        while(remainingWaveTime > 0)
+        {
+
+            yield return new WaitForSeconds(waves[currentWaveIndex].spawnCooldown);
+        }
+
+
+    }
+
     private void SpawnEnemy()
     {
-        int randomEnemyIndex = UnityEngine.Random.Range(0, waves[currentWaveIndex].enemies.Count);
+        int randomEnemyIndex = Random.Range(0, waves[currentWaveIndex].enemies.Count);
 
+        ObjectPool<GameObject> currentPool = GetPoolFromEnemyType(waves[currentWaveIndex].enemies[randomEnemyIndex]);
 
+        GameObject enemy = currentPool.Get();
+    }
+
+    private ObjectPool<GameObject> GetPoolFromEnemyType(EnemyType _enemyType)
+    {
+        foreach(EnemyPool enemyPool in enemiesPossible)
+        {
+            if(enemyPool.enemy == _enemyType)
+            {
+                return enemyPool.pool;
+            }
+        }
+
+        return null;
     }
 
     [System.Serializable]
@@ -31,6 +61,9 @@ public class WaveManager : MonoBehaviour
 
         [SerializeField]
         public float waveTime;
+
+        [SerializeField]
+        public float spawnCooldown;
     }
 
     [System.Serializable]
@@ -39,6 +72,10 @@ public class WaveManager : MonoBehaviour
         public EnemyType enemy;
         public GameObject enemyPrefab;
         public ObjectPool<GameObject> pool;
+
+        public int health;
+        public int movementSpeed;
+        public int damages;
 
         public EnemyPool(int _defaultCapacity, int _maxSize)
         {
@@ -60,10 +97,5 @@ public class WaveManager : MonoBehaviour
 
 public enum EnemyType
 {
-    Endo = 0,
-    PrototypeFreddy = 1,
-    ToyChica = 2,
-    ToyFreddy = 3,
-    Mangle = 4,
-    ToyBonnie = 5,
+    MeleeCreep = 0,
 }
