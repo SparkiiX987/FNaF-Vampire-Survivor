@@ -16,36 +16,64 @@ public class WaveManager : MonoBehaviour
     [SerializeField]
     private float remainingWaveTime;
 
+    [SerializeField]
+    private MapBounds mapBounds;
+
     private void Start()
     {
-        
+        InitPools();
+
+        StartCoroutine(ProcessWaveSpawn());
+    }
+
+    private void InitPools()
+    {
+        foreach(EnemyPool enemyPool in enemiesPossible)
+        {
+            enemyPool.InitPool(transform);
+        }
     }
 
     private IEnumerator ProcessWaveSpawn()
     {
-        while(remainingWaveTime > 0)
+        Vector3 spawnPos = new Vector3();
+        while(currentWaveIndex < waves.Count)
         {
+            remainingWaveTime = waves[currentWaveIndex].waveTime;
 
-            yield return new WaitForSeconds(waves[currentWaveIndex].spawnCooldown);
+            while (remainingWaveTime > 0)
+            {
+                spawnPos.Set(Random.Range(mapBounds.XBounds.x, mapBounds.XBounds.y), 0, Random.Range(mapBounds.YBounds.x, mapBounds.YBounds.y));
+
+                SpawnEnemy(spawnPos);
+
+                remainingWaveTime -= waves[currentWaveIndex].spawnCooldown;
+                yield return new WaitForSeconds(waves[currentWaveIndex].spawnCooldown);
+            }
+
+            currentWaveIndex++;
+            yield return new WaitForSeconds(5);
         }
 
 
     }
 
-    private void SpawnEnemy()
+    private void SpawnEnemy(Vector3 _spawnPosition)
     {
-        int randomEnemyIndex = Random.Range(0, waves[currentWaveIndex].enemies.Count);
+        int randomEnemyIndex = Random.Range(0, waves[currentWaveIndex].enemies.Count - 1);
 
         ObjectPool<GameObject> currentPool = GetPoolFromEnemyType(waves[currentWaveIndex].enemies[randomEnemyIndex]);
 
         GameObject enemy = currentPool.Get();
+
+        enemy.transform.position = _spawnPosition;
     }
 
     private ObjectPool<GameObject> GetPoolFromEnemyType(EnemyType _enemyType)
     {
         foreach(EnemyPool enemyPool in enemiesPossible)
         {
-            if(enemyPool.enemy == _enemyType)
+            if(enemyPool.enemyFactory.enemyType == _enemyType)
             {
                 return enemyPool.pool;
             }
@@ -69,7 +97,7 @@ public class WaveManager : MonoBehaviour
     [System.Serializable]
     public class EnemyPool
     {
-        public EnemyType enemy;
+        public EnemyStatsFactoryPair enemyFactory;
         public GameObject enemyPrefab;
         public ObjectPool<GameObject> pool;
 
@@ -77,23 +105,66 @@ public class WaveManager : MonoBehaviour
         public int movementSpeed;
         public int damages;
 
-        public EnemyPool(int _defaultCapacity, int _maxSize)
+        public void InitPool(Transform _transform, int _defaultCapacity = 25, int _maxSize = 250)
         {
             pool = new ObjectPool<GameObject>(
-                () => 
+                () =>
                 {
-                    GameObject newEnemy = Instantiate(enemyPrefab);
-                    newEnemy.GetComponent<AIBehaviour>().Pool = pool;
+                    GameObject newEnemy = Instantiate(enemyPrefab, _transform);
+                    AIBehaviour ai = newEnemy.GetComponent<AIBehaviour>();
+                    ai.Pool = pool;
+                    ai.SetPlayerTransform(GameMode.playerRef.transform);
+                    newEnemy.SetActive(false);
                     return Instantiate(enemyPrefab);
                 },
-                (GameObject pooledObject) => pooledObject.SetActive(true),
+                (GameObject pooledObject) =>
+                {
+                    pooledObject.SetActive(true);
+                    CreateStatsWithFactory(enemyFactory.factoryType, pooledObject.GetComponent<AIBehaviour>());
+                },
                 (GameObject pooledObject) => pooledObject.SetActive(false),
                 (GameObject pooledObject) => Destroy(pooledObject),
                 true, _defaultCapacity, _maxSize);
         }
+
+
+        private void CreateStatsWithFactory(FactoryType _factoryType, AIBehaviour _enemy)
+        {
+            switch (_factoryType)
+            {
+                case FactoryType.Base:
+                    AIBaseStatsFactory factory = new();
+
+                    _enemy.SetStats(factory.CreateNewStatsTable()
+                        .SetHealthPoint(health)
+                        .SetDamages(damages)
+                        .SetMovementSpeed(movementSpeed)
+                        .BuildStats());
+
+                    break;
+            }
+        }
     }
 }
 
+[System.Serializable]
+public class MapBounds
+{
+    public Vector2 XBounds;
+    public Vector2 YBounds;
+}
+
+[System.Serializable]
+public class EnemyStatsFactoryPair
+{
+    public EnemyType enemyType;
+    public FactoryType factoryType;
+}
+
+public enum FactoryType
+{
+    Base,
+}
 
 public enum EnemyType
 {

@@ -8,7 +8,8 @@ public class GameMode : MonoBehaviour
 
     private PlayerStatsFactory playerStatsFactory = new();
 
-    private GameObject playerRef;
+    public static GameObject playerRef {  get; private set; }
+
 
     private void Awake()
     {

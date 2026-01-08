@@ -1,3 +1,4 @@
+using UnityEditor.Rendering;
 using UnityEngine;
 
 public class Projectile : MonoBehaviour
@@ -6,6 +7,11 @@ public class Projectile : MonoBehaviour
     float damages;
 
     Vector3 avancementFactor;
+
+    private void Start()
+    {
+        Destroy(gameObject, 5);
+    }
 
     public void Initialize(Vector3 _dir, float _damages)
     {
@@ -20,7 +26,13 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        other.GetComponent<AIBehaviour>().TakeDamages(damages);
+        print($"touche {other.gameObject.name}");
+        if (!other.transform.parent.TryGetComponent(out AIBehaviour aiBehaviour))
+        {
+            return;
+        }
+
+        aiBehaviour.TakeDamages(damages);
 
         Destroy(gameObject);
     }
