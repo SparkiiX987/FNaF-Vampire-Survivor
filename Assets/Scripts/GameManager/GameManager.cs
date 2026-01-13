@@ -23,6 +23,20 @@ public class GameManager : MonoBehaviour
 
     JobHandle forceCalculatorHandle;
 
+    NativeParallelMultiHashMap<int2, int> cellMap;
+
+    NativeArray<float3> positions;
+    NativeArray<float3> separationForces;
+
+    [SerializeField]
+    private float separationRadius;
+
+    [SerializeField]
+    private float separationStrength;
+
+    #endregion
+
+    #region Enemies
     List<Transform> enemies = new List<Transform>();
     List<AIBehaviour> enemyAIs = new();
 
@@ -39,6 +53,8 @@ public class GameManager : MonoBehaviour
         WaveManager.AddActiveEnemy += AddActiveEnemy;
         WaveManager.RemoveActiveEnemy += RemoveActiveEnemy;
 
+        cellMap = new NativeParallelMultiHashMap<int2, int>(3000, Allocator.Persistent);
+
         StartCoroutine(RecalculFlowField());
     }
 
@@ -46,6 +62,11 @@ public class GameManager : MonoBehaviour
     {
         WaveManager.AddActiveEnemy -= AddActiveEnemy;
         WaveManager.RemoveActiveEnemy -= RemoveActiveEnemy;
+
+        if (cellMap.IsCreated)
+        {
+            cellMap.Dispose();
+        }
     }
 
     private void Update()
@@ -53,6 +74,39 @@ public class GameManager : MonoBehaviour
         if (enemies.Count == 0) return;
 
         forceCalculatorHandle.Complete();
+
+        cellMap.Clear();
+
+        positions = new NativeArray<float3>(enemies.Count, Allocator.TempJob);
+
+        for (int i = 0; i < enemies.Count; i++)
+        {
+            Vector3 p = enemies[i].position;
+            positions[i] = new float3(p.x, p.y, p.z);
+        }
+
+        BuildCellMapJob buildJob = new BuildCellMapJob
+        {
+            positions = positions,
+            cellSize = separationRadius * 1.1f,
+            writer = cellMap.AsParallelWriter()
+        };
+
+        JobHandle buildHandle = buildJob.Schedule(enemies.Count, 64);
+
+        separationForces = new NativeArray<float3>(enemies.Count, Allocator.TempJob);
+
+        var separationJob = new SeparationGridJob
+        {
+            positions = positions,
+            cellMap = cellMap,
+            cellSize = separationRadius * 1.1f,
+            separationRadius = separationRadius,
+            strength = separationStrength,
+            separationForces = separationForces
+        };
+
+        JobHandle sepHandle = separationJob.Schedule(enemies.Count, 64, buildHandle);
 
         forcesToAdd = new NativeArray<float2>(enemies.Count, Allocator.TempJob);
 
@@ -64,11 +118,12 @@ public class GameManager : MonoBehaviour
             flowDirections = dirs,
             flowForce = forces,
             AiVelocity = velocities,
+            separationForces = separationForces,
             forcesToAdd = forcesToAdd
         };
 
         isJobRunning = true;
-        forceCalculatorHandle = job.Schedule(enemies.Count, 32);
+        forceCalculatorHandle = job.Schedule(enemies.Count, 32, sepHandle);
     }
 
     private void LateUpdate()
@@ -92,6 +147,8 @@ public class GameManager : MonoBehaviour
         if (forces.IsCreated) forces.Dispose();
         if (velocities.IsCreated) velocities.Dispose();
         if (forcesToAdd.IsCreated) forcesToAdd.Dispose();
+        if (positions.IsCreated) positions.Dispose();
+        if (separationForces.IsCreated) separationForces.Dispose();
     }
 
     private void GetEnemiesFlowFieldInfos()
@@ -105,7 +162,6 @@ public class GameManager : MonoBehaviour
         {
             if (flowFieldManager.TryGetCellFromWorld(enemy.position, out Cell cell))
             {
-                print($"{enemy.position} -> {cell.cellPosition}");
                 dirs[index] = cell.direction;
                 forces[index] = cell.force;
             }

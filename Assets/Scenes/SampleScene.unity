@@ -2112,6 +2112,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   flowFieldManager: {fileID: 589354202}
   flowFieldRefreshTimer: 0.5
+  separationRadius: 1
+  separationStrength: 0.5
 --- !u!4 &1696121213
 Transform:
   m_ObjectHideFlags: 0
