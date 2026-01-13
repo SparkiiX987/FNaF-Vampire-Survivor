@@ -2,14 +2,20 @@ using UnityEngine;
 
 public class GameMode : MonoBehaviour
 {
-    [SerializeField] private GameObject player;
+    [SerializeField]
+    private GameObject player;
 
-    [SerializeField] private Transform playerStart;
+    [SerializeField]
+    private Transform playerStart;
+
+    [SerializeField] 
+    private Transform map;
 
     private PlayerStatsFactory playerStatsFactory = new();
 
-    public static GameObject playerRef {  get; private set; }
+    private static GameMode gameMode;
 
+    public static GameObject playerRef;
 
     private void Awake()
     {
@@ -25,6 +31,11 @@ public class GameMode : MonoBehaviour
             .SetHealthPassiveRegen(playerStatsManager.GetRegen())
             .BuildStats();
 
-        playerRef.GetComponent<PlayerController>().SetPlayerStats(playerStats);
+        PlayerController pc = playerRef.GetComponent<PlayerController>();
+
+        pc.SetPlayerStats(playerStats);
+        pc.SetMapTransform(map);
     }
+
+    public static GameMode Get => gameMode;
 }

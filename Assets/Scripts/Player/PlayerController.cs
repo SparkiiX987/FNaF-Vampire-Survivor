@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,15 +9,16 @@ public class PlayerController : MonoBehaviour
     private InputSystem_Actions inputSystem;
     private InputAction moveInput;
 
-    [SerializeField] 
+    [SerializeField]
     private Animator animator;
 
-    [SerializeField] 
+    [SerializeField]
     private Camera playerCamera;
 
     [SerializeField]
     private Transform meshTransform;
 
+    private Transform mapTransform;
     private Vector2 moveDir;
 
     private float currentAACooldown;
@@ -24,6 +26,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject projectilePrefab;
 
     [SerializeField] private Transform projectileSpawnPoint;
+
+    public static event Action<float, float> UpdateHealthBar;
 
     private void Awake()
     {
@@ -57,14 +61,14 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if(moveDir != Vector2.zero)
+        if (moveDir != Vector2.zero)
         {
-            transform.position += stats.GetMovementSpeed * Time.deltaTime * new Vector3(moveDir.x, transform.position.y, moveDir.y);
+            mapTransform.position += stats.GetMovementSpeed * Time.deltaTime * new Vector3(moveDir.x, transform.position.y, moveDir.y);
         }
 
         RotatePlayer();
 
-        if(currentAACooldown <= 0)
+        if (currentAACooldown <= 0)
         {
             FireAutoAttack();
         }
@@ -98,9 +102,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public void SetMapTransform(Transform _mapTransform)
+    {
+        mapTransform = _mapTransform;
+    }
+
     private void StartMove(InputAction.CallbackContext _ctx)
     {
-        moveDir = _ctx.ReadValue<Vector2>();
+        moveDir = (_ctx.ReadValue<Vector2>()) * -1;
         animator.SetBool("IsIdle", false);
     }
 
@@ -108,6 +117,24 @@ public class PlayerController : MonoBehaviour
     {
         moveDir = Vector2.zero;
         animator.SetBool("IsIdle", true);
+    }
+
+    public void TakeDamages(float _amount)
+    {
+        stats.SetHealth(stats.GetCurrentHealth - _amount);
+
+        if (stats.GetCurrentHealth <= 0)
+        {
+            stats.SetHealth(0);
+            OnDeath();
+        }
+
+        UpdateHealthBar.Invoke(stats.GetCurrentHealth, stats.GetMaxHealth);
+    }
+
+    private void OnDeath()
+    {
+        print("mort");
     }
 
     public void SetPlayerStats(PlayerStats _newStats)

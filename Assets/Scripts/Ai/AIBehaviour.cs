@@ -1,21 +1,22 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
 public class AIBehaviour : MonoBehaviour
 {
     [SerializeField]
-    private Stats stats;
+    public Stats stats { get; private set; }
 
-    private Transform playerTransform;
+    public IObjectPool<GameObject> pool;
 
-    private IObjectPool<GameObject> pool;
+    [SerializeField]
+    private Animator animator;
 
-    public IObjectPool<GameObject> Pool { set => pool = value; }
+    [SerializeField]
+    private List<AnimationAttackEventTime> attackAnim;
 
-    void Start()
-    {
-
-    }
+    [SerializeField]
+    private float loopCooldownDuration;
 
     public void SetStats(Stats _stats)
     {
@@ -28,30 +29,25 @@ public class AIBehaviour : MonoBehaviour
 
         if (stats.GetCurrentHealth <= 0)
         {
+            stats.SetHealth(0);
             OnDeath();
         }
     }
 
-    void Update()
+    public void TickAI(Transform _playerTransform)
     {
-        if (playerTransform == null)
-        {
-            return;
-        }
+        if (!_playerTransform) return;
 
-        MoveToPlayer();
-    }
+        Vector3 delta = _playerTransform.position - transform.position;
+        float sqrDist = delta.sqrMagnitude;
+        float sqrAttackRange = stats.GetAttackRange * stats.GetAttackRange;
 
-    private void MoveToPlayer()
-    {
-        Vector3 dir = (playerTransform.position - transform.position).normalized;
+        bool isInRange = sqrDist <= sqrAttackRange;
 
-        transform.position = stats.GetMovementSpeed * Time.deltaTime * dir;
-    }
+        if (animator.GetBool("Attacking") != isInRange)
+            animator.SetBool("Attacking", isInRange);
 
-    public void SetPlayerTransform(Transform _playerTransform)
-    {
-        playerTransform = _playerTransform;
+        if (isInRange) return;
     }
 
     private void OnDeath()
@@ -64,4 +60,21 @@ public class AIBehaviour : MonoBehaviour
 
         Destroy(gameObject);
     }
+
+    public void TakeDamages(int _amount)
+    {
+        stats.SetHealth(stats.GetCurrentHealth -  _amount);
+
+        if(stats.GetCurrentHealth <= 0)
+        {
+            print("mort");
+        }
+    }
+}
+
+[System.Serializable]
+class AnimationAttackEventTime
+{
+    public AnimationClip animationClip;
+    public float Time;
 }

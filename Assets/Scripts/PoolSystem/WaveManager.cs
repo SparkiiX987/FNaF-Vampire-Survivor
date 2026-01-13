@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using Random = UnityEngine.Random;
 
 public class WaveManager : MonoBehaviour
 {
@@ -19,6 +21,12 @@ public class WaveManager : MonoBehaviour
     [SerializeField]
     private MapBounds mapBounds;
 
+    [SerializeField]
+    private Transform enemiesParent;
+
+    public static event Action<Transform> AddActiveEnemy;
+    public static event Action<Transform> RemoveActiveEnemy;
+
     private void Start()
     {
         InitPools();
@@ -28,22 +36,22 @@ public class WaveManager : MonoBehaviour
 
     private void InitPools()
     {
-        foreach(EnemyPool enemyPool in enemiesPossible)
+        foreach (EnemyPool enemyPool in enemiesPossible)
         {
-            enemyPool.InitPool(transform);
+            enemyPool.InitPool(enemiesParent);
         }
     }
 
     private IEnumerator ProcessWaveSpawn()
     {
         Vector3 spawnPos = new Vector3();
-        while(currentWaveIndex < waves.Count)
+        while (currentWaveIndex < waves.Count)
         {
             remainingWaveTime = waves[currentWaveIndex].waveTime;
 
             while (remainingWaveTime > 0)
             {
-                spawnPos.Set(Random.Range(mapBounds.XBounds.x, mapBounds.XBounds.y), 0, Random.Range(mapBounds.YBounds.x, mapBounds.YBounds.y));
+                spawnPos.Set(Random.Range(mapBounds.mapStartPoint.y, mapBounds.mapSize.y), 0, Random.Range(mapBounds.mapStartPoint.x, mapBounds.mapSize.y));
 
                 SpawnEnemy(spawnPos);
 
@@ -71,9 +79,9 @@ public class WaveManager : MonoBehaviour
 
     private ObjectPool<GameObject> GetPoolFromEnemyType(EnemyType _enemyType)
     {
-        foreach(EnemyPool enemyPool in enemiesPossible)
+        foreach (EnemyPool enemyPool in enemiesPossible)
         {
-            if(enemyPool.enemyFactory.enemyType == _enemyType)
+            if (enemyPool.enemyFactory.enemyType == _enemyType)
             {
                 return enemyPool.pool;
             }
@@ -101,28 +109,33 @@ public class WaveManager : MonoBehaviour
         public GameObject enemyPrefab;
         public ObjectPool<GameObject> pool;
 
-        public int health;
-        public int movementSpeed;
-        public int damages;
+        public float health;
+        public float movementSpeed;
+        public float damages;
+        public float attackRange;
 
-        public void InitPool(Transform _transform, int _defaultCapacity = 25, int _maxSize = 250)
+        public void InitPool(Transform enemiesParent, int _defaultCapacity = 25, int _maxSize = 300)
         {
             pool = new ObjectPool<GameObject>(
                 () =>
                 {
-                    GameObject newEnemy = Instantiate(enemyPrefab, _transform);
+                    GameObject newEnemy = Instantiate(enemyPrefab, enemiesParent);
                     AIBehaviour ai = newEnemy.GetComponent<AIBehaviour>();
-                    ai.Pool = pool;
-                    ai.SetPlayerTransform(GameMode.playerRef.transform);
+                    ai.pool = pool;
                     newEnemy.SetActive(false);
-                    return Instantiate(enemyPrefab);
+                    return newEnemy;
                 },
                 (GameObject pooledObject) =>
                 {
                     pooledObject.SetActive(true);
+                    AddActiveEnemy?.Invoke(pooledObject.transform);
                     CreateStatsWithFactory(enemyFactory.factoryType, pooledObject.GetComponent<AIBehaviour>());
                 },
-                (GameObject pooledObject) => pooledObject.SetActive(false),
+                (GameObject pooledObject) =>
+                {
+                    RemoveActiveEnemy?.Invoke(pooledObject.transform);
+                    pooledObject.SetActive(false);
+                },
                 (GameObject pooledObject) => Destroy(pooledObject),
                 true, _defaultCapacity, _maxSize);
         }
@@ -139,6 +152,7 @@ public class WaveManager : MonoBehaviour
                         .SetHealthPoint(health)
                         .SetDamages(damages)
                         .SetMovementSpeed(movementSpeed)
+                        .SetAttackRange(attackRange)
                         .BuildStats());
 
                     break;
@@ -147,12 +161,12 @@ public class WaveManager : MonoBehaviour
     }
 }
 
-[System.Serializable]
-public class MapBounds
-{
-    public Vector2 XBounds;
-    public Vector2 YBounds;
-}
+//[System.Serializable]
+//public class MapBounds
+//{
+//    public Vector2 XBounds;
+//    public Vector2 YBounds;
+//}
 
 [System.Serializable]
 public class EnemyStatsFactoryPair

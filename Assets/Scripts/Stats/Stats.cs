@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class Stats
 {
     protected float movementSpeed;
@@ -10,11 +8,14 @@ public class Stats
 
     protected float damages;
 
+    protected float attackRange;
+
 
     public float GetMovementSpeed => movementSpeed;
     public float GetCurrentHealth => currentHealth;
     public float GetMaxHealth => maxHealth;
     public float GetDamages => damages;
+    public float GetAttackRange => attackRange;
 
 
     public void SetMovementSpeed(float _newSpeed)
@@ -37,6 +38,11 @@ public class Stats
     public void SetDamages(float _damages)
     {
         damages = _damages;
+    }
+
+    public void SetAttackRange(float _attackRange)
+    {
+        attackRange = _attackRange;
     }
 }
 

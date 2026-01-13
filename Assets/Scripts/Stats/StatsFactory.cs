@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public abstract class StatsFactory<TFactory, TStats>
     where TFactory : StatsFactory<TFactory, TStats>
     where TStats : Stats, new()
@@ -12,27 +10,33 @@ public abstract class StatsFactory<TFactory, TStats>
         return (TFactory)this;
     }
 
-    public TFactory CopyStats(TStats _stats)
+    public TFactory CopyStats(TStats _value)
     {
-        stats = _stats;
+        stats = _value;
         return (TFactory)this;
     }
 
-    public TFactory SetHealthPoint(float value)
+    public TFactory SetHealthPoint(float _value)
     {
-        stats.SetMaxHealth(value);
+        stats.SetMaxHealth(_value);
         return (TFactory)this;
     }
 
-    public TFactory SetMovementSpeed(float value)
+    public TFactory SetMovementSpeed(float _value)
     {
-        stats.SetMovementSpeed(value);
+        stats.SetMovementSpeed(_value);
         return (TFactory)this;
     }
 
-    public TFactory SetDamages(float value)
+    public TFactory SetDamages(float _value)
     {
-        stats.SetDamages(value);
+        stats.SetDamages(_value);
+        return (TFactory)this;
+    }
+
+    public TFactory SetAttackRange(float _value)
+    {
+        stats.SetAttackRange(_value);
         return (TFactory)this;
     }
 
@@ -45,15 +49,15 @@ public abstract class StatsFactory<TFactory, TStats>
 
 public class PlayerStatsFactory : StatsFactory<PlayerStatsFactory, PlayerStats>
 {
-    public PlayerStatsFactory SetAttackCooldown(float _newHealth)
+    public PlayerStatsFactory SetAttackCooldown(float _value)
     {
-        stats.SetAttackCooldown(_newHealth);
+        stats.SetAttackCooldown(_value);
         return this;
     }
 
-    public PlayerStatsFactory SetHealthPassiveRegen(float _newHealth)
+    public PlayerStatsFactory SetHealthPassiveRegen(float _value)
     {
-        stats.SetHealthPassiveRegen(_newHealth);
+        stats.SetHealthPassiveRegen(_value);
         return this;
     }
 }
