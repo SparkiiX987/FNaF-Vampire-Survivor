@@ -1258,18 +1258,21 @@ MonoBehaviour:
   - enemies: 0000000001000000
     waveTime: 10
     spawnCooldown: 2
-  - enemies: 000000000100000002000000
-    waveTime: 10
+  - enemies: 010000000000000002000000
+    waveTime: 30
     spawnCooldown: 1
   - enemies: 000000000100000002000000
-    waveTime: 10
+    waveTime: 50
     spawnCooldown: 0.5
-  - enemies: 00000000
-    waveTime: 10
+  - enemies: 00000000010000000200000003000000
+    waveTime: 100
     spawnCooldown: 0.1
-  - enemies: 03000000
-    waveTime: 10
-    spawnCooldown: 0.1
+  - enemies: 00000000010000000300000002000000
+    waveTime: 100
+    spawnCooldown: 0.05
+  - enemies: 0000000001000000030000000200000004000000
+    waveTime: 100
+    spawnCooldown: 0.05
   enemiesPossible:
   - enemyFactory:
       enemyType: 0
@@ -1283,7 +1286,7 @@ MonoBehaviour:
     attackCooldown: 1
     material: {fileID: 2100000, guid: 0a28e33a6c7ca32428d133e30af3f146, type: 2}
   - enemyFactory:
-      enemyType: 0
+      enemyType: 1
       factoryType: 0
     enemyPrefab: {fileID: 2442081589606491622, guid: 4bfb652d26e14e846954ef13305dcd6a, type: 3}
     health: 25
@@ -1294,7 +1297,7 @@ MonoBehaviour:
     attackCooldown: 1
     material: {fileID: 2100000, guid: 532a493c18dafbc43abe4faddc8d2416, type: 2}
   - enemyFactory:
-      enemyType: 0
+      enemyType: 2
       factoryType: 0
     enemyPrefab: {fileID: 2442081589606491622, guid: 4bfb652d26e14e846954ef13305dcd6a, type: 3}
     health: 50
@@ -1305,16 +1308,27 @@ MonoBehaviour:
     attackCooldown: 1
     material: {fileID: 2100000, guid: 93d0c0a1e8c755c4f8e7c67b9af43fe2, type: 2}
   - enemyFactory:
-      enemyType: 0
+      enemyType: 3
       factoryType: 0
     enemyPrefab: {fileID: 2442081589606491622, guid: 4bfb652d26e14e846954ef13305dcd6a, type: 3}
-    health: 1000
-    movementSpeed: 1
+    health: 100
+    movementSpeed: 2
     damages: 25
     attackRange: 1.6
     experienceGived: 10
     attackCooldown: 1
     material: {fileID: 2100000, guid: 0c1ca72e869809b41bf6c3d4ee86d13c, type: 2}
+  - enemyFactory:
+      enemyType: 4
+      factoryType: 0
+    enemyPrefab: {fileID: 2442081589606491622, guid: 4bfb652d26e14e846954ef13305dcd6a, type: 3}
+    health: 250
+    movementSpeed: 2
+    damages: 55
+    attackRange: 1.6
+    experienceGived: 10
+    attackCooldown: 0.5
+    material: {fileID: 2100000, guid: 86e88eeef606a024d83c54bb78ab8ba4, type: 2}
   remainingWaveTime: 0
   mapBounds:
     mapStartPoint: {x: -25, y: -25}
@@ -1678,8 +1692,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   flowFieldManager: {fileID: 589354202}
   flowFieldRefreshTimer: 0.5
-  separationRadius: 1
-  separationStrength: 0.5
+  separationRadius: 2
+  separationStrength: 0.75
 --- !u!1 &1249755398
 GameObject:
   m_ObjectHideFlags: 0
@@ -2318,55 +2332,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1654877939}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1674485700
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1674485702}
-  - component: {fileID: 1674485701}
-  m_Layer: 0
-  m_Name: PlayerStatsManager TOREMOVE
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1674485701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1674485700}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c1f4af32c1cb66499b94ef5fbf1ecd6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatsManager
-  health: 250
-  speed: 4
-  atk: 10
-  atks: 2
-  regen: 1
---- !u!4 &1674485702
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1674485700}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1693678125
 GameObject:
   m_ObjectHideFlags: 0
@@ -3156,7 +3121,6 @@ SceneRoots:
   - {fileID: 1725870073}
   - {fileID: 832575519}
   - {fileID: 2071401863}
-  - {fileID: 1674485702}
   - {fileID: 589354203}
   - {fileID: 1596514238}
   - {fileID: 1192827540}

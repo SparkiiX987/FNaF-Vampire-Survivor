@@ -198,5 +198,6 @@ public enum EnemyType
     Base = 0,
     Intermediary = 1,
     Big = 2,
-    Boss = 3,
+    VeryBig = 3,
+    Boss = 4,
 }
