@@ -46,6 +46,8 @@ public class GameManager : MonoBehaviour
     bool isJobRunning;
     #endregion
 
+    private Transform playerTransform;
+
     public int EnemiesCount => enemies.Count;
 
     private void Start()
@@ -56,6 +58,8 @@ public class GameManager : MonoBehaviour
         cellMap = new NativeParallelMultiHashMap<int2, int>(3000, Allocator.Persistent);
 
         StartCoroutine(RecalculFlowField());
+
+        playerTransform = GameMode.playerRef.transform;
     }
 
     private void OnDestroy()
@@ -138,6 +142,8 @@ public class GameManager : MonoBehaviour
         {
             enemies[i].position +=
                 new Vector3(forcesToAdd[i].x, 0, forcesToAdd[i].y) * Time.deltaTime;
+
+            enemies[i].GetComponent<AIBehaviour>().AiAttack(playerTransform);
         }
 
         AddAllPending();

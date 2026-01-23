@@ -1,7 +1,7 @@
 using UnityEngine;
 using TMPro;
 
-public class ShowDisplayFps : MonoBehaviour
+public class DisplayGameInfos : MonoBehaviour
 {
     public TextMeshProUGUI enemiesText;
     public GameManager gameManager;

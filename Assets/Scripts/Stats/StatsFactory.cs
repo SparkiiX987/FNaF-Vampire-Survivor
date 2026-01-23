@@ -34,11 +34,12 @@ public abstract class StatsFactory<TFactory, TStats>
         return (TFactory)this;
     }
 
-    public TFactory SetAttackRange(float _value)
+    public TFactory SetAttackCooldown(float _value)
     {
-        stats.SetAttackRange(_value);
+        stats.SetAttackCooldown(_value);
         return (TFactory)this;
     }
+
 
     public TStats BuildStats()
     {
@@ -49,12 +50,6 @@ public abstract class StatsFactory<TFactory, TStats>
 
 public class PlayerStatsFactory : StatsFactory<PlayerStatsFactory, PlayerStats>
 {
-    public PlayerStatsFactory SetAttackCooldown(float _value)
-    {
-        stats.SetAttackCooldown(_value);
-        return this;
-    }
-
     public PlayerStatsFactory SetHealthPassiveRegen(float _value)
     {
         stats.SetHealthPassiveRegen(_value);
@@ -62,7 +57,17 @@ public class PlayerStatsFactory : StatsFactory<PlayerStatsFactory, PlayerStats>
     }
 }
 
-public class AIBaseStatsFactory : StatsFactory<AIBaseStatsFactory, Stats>
+public class AIBaseStatsFactory : StatsFactory<AIBaseStatsFactory, EnemyStats>
 {
+    public AIBaseStatsFactory SetExperienceGived(int _value)
+    {
+        stats.SetExperienceGived(_value);
+        return this;
+    }
 
+    public AIBaseStatsFactory SetAttackRange(float _value)
+    {
+        stats.SetAttackRange(_value);
+        return this;
+    }
 }

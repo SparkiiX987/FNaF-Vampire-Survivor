@@ -1,27 +1,19 @@
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HealthBar : MonoBehaviour
+public class HealthBar : Progressbar
 {
-    [SerializeField] 
-    private Slider bar;
 
     [SerializeField]
-    private TextMeshProUGUI healthText;
+    protected TextMeshProUGUI healthText;
 
     private void Start()
     {
        PlayerController.UpdateHealthBar += SetHealthOnHUD;
     }
 
-    private void SetBarValue(float _value)
-    {
-        bar.value = _value;
-    }
-
-    private void SetTextValue(float _currentHealt, float _maxHealth)
+    protected void SetTextValue(float _currentHealt, float _maxHealth)
     {
         healthText.text = $"{(int)_currentHealt} / {(int)_maxHealth}";
     }

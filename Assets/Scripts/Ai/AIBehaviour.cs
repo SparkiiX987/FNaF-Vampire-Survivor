@@ -1,24 +1,27 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.Pool;
 
 public class AIBehaviour : MonoBehaviour
 {
     [SerializeField]
-    public Stats stats { get; private set; }
+    public EnemyStats stats;
+
+    private float currentAttackCooldown;
+
+    private bool isDead;
 
     public IObjectPool<GameObject> pool;
 
     [SerializeField]
-    private Animator animator;
+    public static event Action<Vector3, int> SpawnExperienceOrbe;
 
-    [SerializeField]
-    private List<AnimationAttackEventTime> attackAnim;
+    private void OnEnable()
+    {
+        isDead = false;
+    }
 
-    [SerializeField]
-    private float loopCooldownDuration;
-
-    public void SetStats(Stats _stats)
+    public void SetStats(EnemyStats _stats)
     {
         stats = _stats;
     }
@@ -34,7 +37,13 @@ public class AIBehaviour : MonoBehaviour
         }
     }
 
-    public void TickAI(Transform _playerTransform)
+    public void Attack(Transform _playerTransform)
+    {
+        currentAttackCooldown = stats.GetAttackCooldown;
+        _playerTransform.GetComponent<PlayerController>().TakeDamages(GetComponentInParent<AIBehaviour>().stats.GetDamages);
+    }
+
+    public void AiAttack(Transform _playerTransform)
     {
         if (!_playerTransform) return;
 
@@ -44,37 +53,28 @@ public class AIBehaviour : MonoBehaviour
 
         bool isInRange = sqrDist <= sqrAttackRange;
 
-        if (animator.GetBool("Attacking") != isInRange)
-            animator.SetBool("Attacking", isInRange);
+        if (isInRange && currentAttackCooldown <= 0)
+        {
+            Attack(_playerTransform);
+            return;
+        }
 
-        if (isInRange) return;
+        currentAttackCooldown -= Time.deltaTime;
     }
 
     private void OnDeath()
     {
-        if (pool != null)
+        if (pool != null && !isDead)
         {
+            if(SpawnExperienceOrbe != null)
+            { 
+                SpawnExperienceOrbe.Invoke(transform.position, stats.GetExperienceGived);
+            }
+            isDead = true;
             pool.Release(gameObject);
             return;
         }
 
         Destroy(gameObject);
     }
-
-    public void TakeDamages(int _amount)
-    {
-        stats.SetHealth(stats.GetCurrentHealth -  _amount);
-
-        if(stats.GetCurrentHealth <= 0)
-        {
-            print("mort");
-        }
-    }
-}
-
-[System.Serializable]
-class AnimationAttackEventTime
-{
-    public AnimationClip animationClip;
-    public float Time;
 }

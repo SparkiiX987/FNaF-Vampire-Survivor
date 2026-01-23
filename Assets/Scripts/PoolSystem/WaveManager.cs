@@ -49,6 +49,8 @@ public class WaveManager : MonoBehaviour
         {
             remainingWaveTime = waves[currentWaveIndex].waveTime;
 
+            WaitForSeconds waveSpawnInterval = new WaitForSeconds(waves[currentWaveIndex].spawnCooldown);
+
             while (remainingWaveTime > 0)
             {
                 spawnPos.Set(Random.Range(mapBounds.mapStartPoint.y, mapBounds.mapSize.y), 0, Random.Range(mapBounds.mapStartPoint.x, mapBounds.mapSize.y));
@@ -56,14 +58,13 @@ public class WaveManager : MonoBehaviour
                 SpawnEnemy(spawnPos);
 
                 remainingWaveTime -= waves[currentWaveIndex].spawnCooldown;
-                yield return new WaitForSeconds(waves[currentWaveIndex].spawnCooldown);
+                yield return waveSpawnInterval;
             }
 
             currentWaveIndex++;
+
             yield return new WaitForSeconds(5);
         }
-
-
     }
 
     private void SpawnEnemy(Vector3 _spawnPosition)
@@ -71,6 +72,11 @@ public class WaveManager : MonoBehaviour
         int randomEnemyIndex = Random.Range(0, waves[currentWaveIndex].enemies.Count - 1);
 
         ObjectPool<GameObject> currentPool = GetPoolFromEnemyType(waves[currentWaveIndex].enemies[randomEnemyIndex]);
+
+        if(currentPool == null)
+        {
+            return;
+        }
 
         GameObject enemy = currentPool.Get();
 
@@ -113,6 +119,10 @@ public class WaveManager : MonoBehaviour
         public float movementSpeed;
         public float damages;
         public float attackRange;
+        public int experienceGived;
+        public float attackCooldown;
+
+        public Material material;
 
         public void InitPool(Transform enemiesParent, int _defaultCapacity = 25, int _maxSize = 300)
         {
@@ -120,23 +130,24 @@ public class WaveManager : MonoBehaviour
                 () =>
                 {
                     GameObject newEnemy = Instantiate(enemyPrefab, enemiesParent);
+                    newEnemy.transform.GetChild(0).GetComponent<MeshRenderer>().material = material;
                     AIBehaviour ai = newEnemy.GetComponent<AIBehaviour>();
                     ai.pool = pool;
                     newEnemy.SetActive(false);
                     return newEnemy;
                 },
-                (GameObject pooledObject) =>
+                (GameObject _pooledObject) =>
                 {
-                    pooledObject.SetActive(true);
-                    AddActiveEnemy?.Invoke(pooledObject.transform);
-                    CreateStatsWithFactory(enemyFactory.factoryType, pooledObject.GetComponent<AIBehaviour>());
+                    _pooledObject.SetActive(true);
+                    AddActiveEnemy?.Invoke(_pooledObject.transform);
+                    CreateStatsWithFactory(enemyFactory.factoryType, _pooledObject.GetComponent<AIBehaviour>());
                 },
-                (GameObject pooledObject) =>
+                (GameObject _pooledObject) =>
                 {
-                    RemoveActiveEnemy?.Invoke(pooledObject.transform);
-                    pooledObject.SetActive(false);
+                    RemoveActiveEnemy?.Invoke(_pooledObject.transform);
+                    _pooledObject.SetActive(false);
                 },
-                (GameObject pooledObject) => Destroy(pooledObject),
+                (GameObject _pooledObject) => Destroy(_pooledObject),
                 true, _defaultCapacity, _maxSize);
         }
 
@@ -153,6 +164,8 @@ public class WaveManager : MonoBehaviour
                         .SetDamages(damages)
                         .SetMovementSpeed(movementSpeed)
                         .SetAttackRange(attackRange)
+                        .SetExperienceGived(experienceGived)
+                        .SetAttackCooldown(attackCooldown)
                         .BuildStats());
 
                     break;
@@ -182,5 +195,8 @@ public enum FactoryType
 
 public enum EnemyType
 {
-    MeleeCreep = 0,
+    Base = 0,
+    Intermediary = 1,
+    Big = 2,
+    Boss = 3,
 }
